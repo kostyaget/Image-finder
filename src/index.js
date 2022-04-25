@@ -1,9 +1,9 @@
 import './css/styles.css';
 import ImagesApiService from './images-service';
-import Notiflix from 'notiflix'; 
+import Notiflix from 'notiflix';
 
 const refs = {
-    searchForm: document.querySelector('#search_form'),
+    searchForm: document.querySelector('#search-form'),
     imagesContainer: document.querySelector('.gallery'),
     loadMoreBtn: document.querySelector('.load-more'),
 };
@@ -22,7 +22,7 @@ async function onSearch(event) {
 
     const data = await imagesApiService.fetchImages();
     return await imagesOnSearch(data);
-};
+ };
 
 async function onLoadMore(event) {
     event.preventDefault();
@@ -31,13 +31,13 @@ async function onLoadMore(event) {
         const images = await imagesApiService.fetchImages();
         return await renderImagesList(images);
     } catch (error) {
-        return NotiflixNotifly.info('We are sorry, but you have reached the end of search results.')
+        return Notiflix.Notify.info('We are sorry, but you have reached the end of search results.');
     }
 };
 
 function renderImagesList(images) {
     const markup = images
-        .map(({ webformatURL, tags, likes, views, comments, downloads }) => {
+        .map(({ webformatURL,tags,likes,views,comments,downloads}) => {
             return `<div class="photo-card">
   <img src="${webformatURL}" alt="${tags}" loading="lazy" />
   <div class="info">
@@ -55,25 +55,25 @@ function renderImagesList(images) {
     </p>
   </div>
 </div>`;
-        })
-        .join("");
-    refs.imagesContainer.insertAdjacentHTML("beforeend", markup);
+    })
+    .join("");
+        refs.imagesContainer.insertAdjacentHTML("beforeend", markup);
 };
 function clearImagesContainer() {
     refs.imagesContainer.innerHTML = '';
     refs.loadMoreBtn.classList.add('is-hiden');
 };
-
+ 
 function onEmptyArray() {
-    Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.')
+   Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.'); 
 };
 function imagesOnSearch(data) {
     console.log(data);
-    if (data.length === 0) {
-        clearImagesContainer();
-        onEmptyArray()
-        return;
-    };
-    renderImagesList(data);
-    refs.loadMoreBtn.classList.remove('is-hiden')
-}
+            if (data.length === 0) {
+            clearImagesContainer();
+            onEmptyArray();            
+            return;
+    };  
+        renderImagesList(data);
+        refs.loadMoreBtn.classList.remove('is-hiden');    
+ };
