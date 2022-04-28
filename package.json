@@ -32,6 +32,7 @@
     "flatpickr": "^4.6.9",
     "lodash.throttle": "^4.1.1",
     "lodash.times": "^4.3.2",
-    "notiflix": "^3.2.5"
+    "notiflix": "^3.2.5",
+    "simplelightbox": "^2.10.3"
   }
 }

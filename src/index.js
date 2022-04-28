@@ -1,79 +1,81 @@
 import './css/styles.css';
 import ImagesApiService from './images-service';
 import Notiflix from 'notiflix';
+import SimpleLightbox from "simplelightbox";
+import "simplelightbox/dist/simple-lightbox.min.css";
 
-const refs = {
-    searchForm: document.querySelector('#search-form'),
-    imagesContainer: document.querySelector('.gallery'),
-    loadMoreBtn: document.querySelector('.load-more'),
-};
+
+const FormEl = document.querySelector('#search-form');
+const galleryEl = document.querySelector('.gallery');
+const loadMoreBtnEl = document.querySelector('.load-more');
+
 const imagesApiService = new ImagesApiService();
+const simpleLightBox = new SimpleLightbox('.gallery a', {
+    captionDelay: 250,
+});
 
-refs.searchForm.addEventListener('submit', onSearch);
-refs.loadMoreBtn.addEventListener('click', onLoadMore);
-refs.loadMoreBtn.classList.add('is-hiden');
+FormEl.addEventListener('submit', onSearch);
+loadMoreBtnEl.addEventListener('click', onLoadMoreClick)
 
-async function onSearch(event) {
+function onSearch(event) {
     event.preventDefault();
-
-    clearImagesContainer();
-    imagesApiService.query = event.currentTarget.elements.searchQuery.value;
+    imagesApiService.query = event.currentTarget.elements.searchQuery.value.trim();
+    loadMoreBtnEl.classList.add('is-hidden');
     imagesApiService.resetPage();
-
-    const data = await imagesApiService.fetchImages();
-    return await imagesOnSearch(data);
- };
-
-async function onLoadMore(event) {
-    event.preventDefault();
-
-    try {
-        const images = await imagesApiService.fetchImages();
-        return await renderImagesList(images);
-    } catch (error) {
-        return Notiflix.Notify.info('We are sorry, but you have reached the end of search results.');
+    galleryEl.innerHTML = '';
+   
+    if (imagesApiService.query) {
+        imagesApiService.fetchImages( )
+            .then(data => {                
+                if (data.hits.length < 40) {
+                    Notiflix.Notify.failure('We are sorry, but you have reached the end of search results.');
+                    loadMoreBtnEl.classList.add('is-hidden');
+                    renderImagesList(data);
+                    return;
+                }
+                loadMoreBtnEl.classList.remove('is-hidden');
+                renderImagesList(data);
+            })
     }
-};
+}
 
-function renderImagesList(images) {
-    const markup = images
-        .map(({ webformatURL,tags,likes,views,comments,downloads}) => {
-            return `<div class="photo-card">
-  <img src="${webformatURL}" alt="${tags}" loading="lazy" />
-  <div class="info">
-    <p class="info-item">
-      <b>Likes</b><span>${likes}</span>
-    </p>
-    <p class="info-item">
-      <b>Views</b><span>${views}</span>
-    </p>
-    <p class="info-item">
-      <b>Comments</b><span>${comments}</span>
-    </p>
-    <p class="info-item">
-      <b>Downloads</b><span>${downloads}</span>
-    </p>
-  </div>
-</div>`;
-    })
-    .join("");
-        refs.imagesContainer.insertAdjacentHTML("beforeend", markup);
-};
-function clearImagesContainer() {
-    refs.imagesContainer.innerHTML = '';
-    refs.loadMoreBtn.classList.add('is-hiden');
-};
- 
-function onEmptyArray() {
-   Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.'); 
-};
-function imagesOnSearch(data) {
-    console.log(data);
-            if (data.length === 0) {
-            clearImagesContainer();
-            onEmptyArray();            
+function onLoadMoreClick() {
+    
+    imagesApiService.fetchImages().then(data => {
+        if (data.hits.length < 40) {             
+            Notiflix.Notify.failure('We are sorry, but you have reached the end of search results.');
+            loadMoreBtnEl.classList.add('is-hidden');
+            renderImagesList(data);
             return;
-    };  
+        };
         renderImagesList(data);
-        refs.loadMoreBtn.classList.remove('is-hiden');    
- };
+        
+    });
+}
+
+function renderImagesList(data) {
+    const imagesList = data.hits.map(item => `
+    <a class="photo-card"href="${item.largeImageURL}">
+    <div >
+    <img src="${item.webformatURL}" alt="${item.tags}" loading="lazy" />
+    <div class="info">
+        <p class="info-item">
+        <b>Likes</b> <span>${item.likes}</span>
+        </p>
+        <p class="info-item">
+        <b>Views</b><span>${item.views}</span>
+        </p>
+        <p class="info-item">
+        <b>Comments</b><span>${item.comments}</span>
+        </p>
+        <p class="info-item">
+        <b>Downloads</b><span>${item.downloads}</span>
+        </p>
+    </div>
+    </div>
+    </a>
+    `).join('');
+    galleryEl.insertAdjacentHTML('beforeend', imagesList);
+    simpleLightBox.refresh();
+    
+ }

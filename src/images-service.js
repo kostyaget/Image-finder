@@ -1,28 +1,46 @@
+const API_KEY = '24768000-69e119d8d67a6997f84a85579';
+const BASE_URL = 'https://pixabay.com/api/';
 import Notiflix from 'notiflix';
-export default class ImagesApiService{
+import axios from "axios";
+
+export default class ImagesApiService {
     constructor() {
         this.searchQuery = '';
         this.page = 1;
-        this.perPage = 40;   
-    }    
+    }
     async fetchImages() {
-        const API_KEY = '24700389-41a6c20aad42dc08b671c5623';
-        const url = `https://pixabay.com/api/?key=${API_KEY}&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=${this.perPage}&page=${this.page}`;   
-        const response = await fetch(url);
-        const data = await response.json();
-        const images= await this.hitsOfImages(data);
-        return images;        
+        try {
+            const newImage = await axios(`${BASE_URL}?key=${API_KEY}&q=${this.searchQuery}&image_type=photo&orientation=horizontal&safesearch=true&per_page=40&page=${this.page}`)
+                .then(response => {
+                    if (this.page === 1 && response.data.totalHits !== 0) {
+                        Notiflix.Notify.success(`Hooray! We found ${response.data.totalHits} images.`);
+                    };
+                    if (response.data.hits.length === 0) {
+                        Notiflix.Notify.failure('Sorry, there are no images matching your search query. Please try again.');
+                        return;
+                    };
+                    this.incrementPage();
+                    return response.data;
+                });
+            return newImage;
+        }
+        catch (error) {
+            Notiflix.Notify.failure(`${error}`)
+        }
     }
-    hitsOfImages(data) {
-                this.page += 1;                
-                return data.hits;
-    }
+    incrementPage() {
+    this.page += 1;
+  }
+
     resetPage() {
-        this.page = 1;
+    this.page = 1;
+  }
+    get query() {
+        return this.searchQuery;
     }
 
-   
     set query(newQuery) {
         this.searchQuery = newQuery;
     }
+
 }
