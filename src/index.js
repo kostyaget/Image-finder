@@ -23,7 +23,6 @@ function onSearch(event) {
     loadMoreBtnEl.classList.add('is-hidden');
     imagesApiService.resetPage();
     galleryEl.innerHTML = '';
-   
     if (imagesApiService.query) {
         imagesApiService.fetchImages( )
             .then(data => {                
